@@ -1,0 +1,111 @@
+<template>
+    <lightning-card>
+        <div class="slds-m-around_x-small">
+            <div style='color: rgb(255, 255, 255);
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.375em;background-color: rgb(28, 97, 167);border-top-left-radius: 5px 5px;
+            border-top-right-radius: 5px 5px;'>
+                <h2>Instant Life Insurance Quote </h2>
+            </div>
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Status</p>
+            </div>
+            <lightning-combobox name="State" label="" value={stateValue} placeholder="Select State"
+                options={stateoptions} onchange={handleStateChange}>
+            </lightning-combobox>
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Birth Day</p>
+            </div>
+            <div class="slds-grid">
+                <div class="slds-col slds-order_3">
+                    <lightning-combobox name="birthMonth" label="" value={monthValue} placeholder="Select Month"
+                        options={monthOptions} onchange={handleMonthChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-order_1">
+                    <lightning-combobox name="birthDate" label="" value={dayValue} placeholder="Select Day"
+                        options={dayOptions} onchange={handleDateChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-order_2">
+                    <lightning-combobox name="birthday" label="" value={yearValue} placeholder="Select Year"
+                        options={yearOptions} onchange={handleYearChange}>
+                    </lightning-combobox>
+                </div>
+            </div>
+            
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Gender</p>
+            </div>
+
+            <lightning-radio-group name="genderRadioGroup"
+                          label=""
+                          options={genderOptions}
+                          value={genderValue}
+                          type="button">
+            </lightning-radio-group>
+            <div>
+                 <p class="slds-m-top_medium slds-text-title_bold">Smoker/ Tobacco</p>
+            </div>
+
+            <lightning-radio-group name="smokderRadioGroup"
+                          label=""
+                          options={smokerOptions}
+                          value={smokerValue}
+                          type="button">
+            </lightning-radio-group>
+
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Health Class</p>
+            </div>
+
+            <lightning-combobox name="healthClass" label="" value={healthClassValue} placeholder="Select Health Class"
+                options={healthClassOptions} onchange={handleHealthClassChange}>
+            </lightning-combobox>
+         
+                <div if:true={isLoaded} class="slds-is-relative">
+                   <lightning-spinner
+                       alternative-text="Loading..." variant="brand">
+                   </lightning-spinner>
+               </div>
+           
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Type Of Insurance</p>
+            </div>
+
+            <lightning-combobox name="typeofInsu" label="" value={typeofInsuValue}
+                placeholder="Select Type of Insurance" options={typeofInsuOptions} onchange={handleToInsuChange}>
+            </lightning-combobox>
+
+            <div>
+                <p class="slds-m-top_medium slds-text-title_bold">Amount of Insurance</p>
+            </div>
+
+            <lightning-combobox name="amountOfInsurance" label="" value={amountofInsuValue}
+                placeholder="Select Amount of Insurance" options={amountofInsuOptions} onchange={handleAmuInsuChange}>
+            </lightning-combobox>
+            <div class="slds-m-top_x-small slds-align_absolute-center">
+                <lightning-button variant="brand" label="Compare Now" title="Compare Now" onclick={handleClick}
+                    class="slds-m-left_x-small slds-button slds-button_brand slds-button_stretch"></lightning-button>
+
+            </div>
+
+        </div>
+        <div>
+            <div style="font-family: Arial; font-weight: bold; font-style: normal; text-decoration: none; font-size: 11pt; text-align:center; margin-top:0px">Powered by <a class="nocolor" href="http://www.compulife.com" target="_blank">COMPULIFE</a><sup>®</sup>&nbsp;&nbsp;|&nbsp;&nbsp;<a style="color: #333333; font-weight: normal;" href="https://www.compulife.net/termsofuse.php" target="_blank">Terms of Use</a></div>
+        </div>
+    </lightning-card>
+    <lightning-card>
+    <template for:each={quotes} for:item="quote">
+
+        <c-quote-tile-cmp
+            key={quote._compcode}
+            compcode={quote._compcode}
+            name={quote._name}
+            url={quote._url}
+        >
+        </c-quote-tile-cmp>
+        </template>
+    </lightning-card>
+</template>
