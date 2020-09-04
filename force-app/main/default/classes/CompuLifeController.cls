@@ -49,9 +49,4 @@ public with sharing class  CompuLifeController {
        //System.debug(productList);
        return productList;
     }
-
-    @AuraEnabled(cacheable=true)  
-    public static Contact getContactInfo(Id contactId){
-       return [SELECT Id, Birthdate FROM Contact WHERE ID=: contactId];
-    }
 }
