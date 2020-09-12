@@ -4,6 +4,7 @@ import getContactList from '@salesforce/apex/CompuLifeController.getContactList'
 import getHealthList from '@salesforce/apex/CompuLifeController.getHealthList';
 import getCategoryList from '@salesforce/apex/CompuLifeController.getCategoryList';
 import { getRecord } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const FIELDS = [
   'Contact.Name',
@@ -14,6 +15,7 @@ const FIELDS = [
 
 export default class ComboboxBasic extends LightningElement {
 @api isLoaded = false;
+@api isNotInitial = false;
 @api recordId;
 
 @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
@@ -299,37 +301,72 @@ get smokerOptions() {
 }
 
 handleClick(event) {
+  debugger;
   this.isLoaded = true;
+  let fileBody = JSON.stringify({
+    'State': 'MI',
+    'ZipCode': '',
+    'BirthMonth': '8',
+    'Birthday': '11',
+    'BirthYear': '1980',
+    'ActualAge': '39',
+    'NearestAge': '40',
+    'Sex': 'M',
+    'Smoker': 'N',
+    'Health': 'PP',
+    'NewCategory': '5',
+    'FaceAmount': '2000000',
+    'ModeUsed': 'ALL'
+  })
+  var errObj = null;
   //6d0BED8e0
   var url1 = 'https://compulifeapi.com/api/CompanyList/';
-  var url = 'https://compulifeapi.com/api/CategoryList?COMPULIFEAUTHORIZATIONID=6d0BED8e0'
-		fetch(url1,
+  var url = 'https://compulifeapi.com/api/request/?COMPULIFEAUTHORIZATIONID=51b986Af5&REMOTE_IP=86.245.54.127'
+		fetch(url,
 		{
-			method : "GET",
+      method : "POST",
+      body: fileBody,
 			headers : {
 	
-			}
+      },
 		}).then(function(response) {
+      if(response.status != 200) {
+        errObj = response;
+      }
 			return response.json();
 		})
 		.then((qlist) =>{
       debugger;
+        if(errObj != null) {
+        const event = new ShowToastEvent({
+            title: 'Error',
+            message: qlist.message,
+            variant: 'error'
+        });
+        this.dispatchEvent(event);
+        this.isLoaded = false;
+        return;
+        }
+      
 			let quotes_list = [];
-			    for(let v of qlist){
-				    quotes_list.push(new Quote(v.CompCode, v.Name, v.Logos.Large));
+			    for(let v of qlist.Compulife_ComparisonResults.Compulife_Results){
+				    quotes_list.push(new Quote(v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
+              v.Compulife_compprodcode, v.Compulife_premiumAnnual, v.Compulife_premiumM, v.Compulife_guar,
+              v.Compulife_product, v.Compulife_rgpfpp, v.Compulife_healthcat, v.Compulife_premiumQ, v.Compulife_premiumH));
           }
 			
       this.quotes = quotes_list;
       this.isLoaded = false;
+      this.isNotInitial = true;
 			
 		})
 		.catch(e=>console.log(e));
 }
 
 
-handleChange(event) {
-  this.value1 = event.detail.value;
-}
+  handleChange(event) {
+    this.value1 = event.detail.value;
+  }
 
 
   handleStateChange(event) {
