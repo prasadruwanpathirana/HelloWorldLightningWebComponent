@@ -1,6 +1,6 @@
 import { LightningElement, track, api, wire } from 'lwc';
 import Quote from './quote';
-import getContactList from '@salesforce/apex/CompuLifeController.getContactList';
+//import getContactList from '@salesforce/apex/CompuLifeController.getContactList';
 import getHealthList from '@salesforce/apex/CompuLifeController.getHealthList';
 import getCategoryList from '@salesforce/apex/CompuLifeController.getCategoryList';
 import { getRecord } from 'lightning/uiRecordApi';
@@ -21,36 +21,31 @@ export default class ComboboxBasic extends LightningElement {
 @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
     contact;
 
-@wire(getContactList)
-    contactsList;
+//@wire(getContactList)
+//    contactsList;
 @wire(getHealthList)
     healthList;
 @wire(getCategoryList)
     categoryList;
 
-@track yearValue = '2020';
-@track dayValue = '15';
-@track monthValue = 'January';
+//@track yearValue = '2020';
+//@track dayValue = '15';
+//@track monthValue = 'January';
 @track typeofInsuValue = '1';
 @track healthClassValue = 'PP';
 @track amountofInsuValue = '10000'; 
 @track smokerValue = 'No';
 @track genderValue = 'Male';
-@track stateValue = 'MI';
+//@track stateValue = 'MI';
 @track quotes;
 
 
 
-get stateoptions() {
-  /* return [
-             { label: 'Califonia', value: 'Califonia' },
-             { label: 'Albama', value: 'Albama' },
-             { label: 'Alesca', value: 'Alesca' },
-           ];*/
+/*get stateoptions() {
       return this.contactsList.data;
-}
+} */
 
-get yearOptions() {
+/*get yearOptions() {
   return [
            { label: '1916', value: '1916' },
            { label: '1917', value: '1917' },
@@ -158,8 +153,8 @@ get yearOptions() {
            { label: '2019', value: '2019' },
            { label: '2020', value: '2020' },
          ];
-}
-
+} */
+/*
 get dayOptions() {
   return [
            { label: '1', value: '1' },
@@ -195,14 +190,13 @@ get dayOptions() {
            { label: '31', value: '31' },
 
          ];
-}
+} */
 
 get birthdate() {
   return this.contact.data.fields.Name.value;
 }
 
- 
-
+/*
 get monthOptions() {
   return [
            { label: 'January', value: 'January' },
@@ -218,29 +212,14 @@ get monthOptions() {
            { label: 'November', value: 'November' },
            { label: 'December', value: 'December' },
          ];
-}
+} */
 
 get healthClassOptions() {
- /*  return [
-          { label: 'Preferred Plus', value: 'PreferredPlus' },
-           { label: 'Preferred', value: 'Preferred' },
-           { label: 'Regular Plus', value: 'RegularPlus' },
-           { label: 'Regular', value: 'Regular' },
-         ]; */
-
-         return this.healthList.data;
+  return this.healthList.data;
 }
 
 get typeofInsuOptions() {
-  /*return [
-           { label: '1 Year Level Term', value: '1YearLevelTerm' },
-           { label: '5 Year Level Term', value: '5YearLevelTerm' },
-           { label: '10 Year Level Term', value: '10YearLevelTerm' },
-           { label: '15 Year Level Term', value: '15YearLevelTerm' },
-           { label: '20 Year Level Term', value: '20YearLevelTerm' },
-           { label: '25 Year Level Term', value: '25YearLevelTerm' },
-         ]; */
-         return this.categoryList.data;
+  return this.categoryList.data;
 }
 
 get amountofInsuOptions() {
@@ -286,12 +265,12 @@ get amountofInsuOptions() {
          ];
 }
 
-get genderOptions() {
+/*get genderOptions() {
   return [
            { label: 'Male', value: 'Male' },
            { label: 'Female', value: 'Female' },
          ];
-}
+} */
 
 get smokerOptions() {
   return [
@@ -361,21 +340,23 @@ handleClick(event) {
 			
 		})
 		.catch(e=>console.log(e));
+  }
+
+  /*handleStateChange(event) {
+    this.stateValue = event.detail.value;
+  } */
+
+  handleHealthClassChange(event) {
+    this.healthClassValue = event.detail.value;
+ }
+
+ handleToInsuChange(event) {
+  this.typeofInsuValue = event.detail.value;
 }
 
-
-  handleChange(event) {
-    this.value1 = event.detail.value;
-  }
-
-
-  handleStateChange(event) {
-    this.stateValue = event.detail.value;
-  }
-
-  handleHealthChange(event) {
-    this.heathValue = event.detail.value;
- }
+handleToInsuChange(event) {
+  this.amountofInsuValue = event.detail.value;
+}
 
 
  

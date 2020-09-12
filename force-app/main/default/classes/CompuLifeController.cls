@@ -1,6 +1,6 @@
 public with sharing class  CompuLifeController {
     
-    @AuraEnabled(cacheable=true)  
+  /*  @AuraEnabled(cacheable=true)  
     public static List<OptionWrapper> getContactList(){
        List<OptionWrapper> stateList = new List<OptionWrapper>();
        Schema.DescribeFieldResult fieldResult = Quote_Request__c.State__c.getDescribe();
@@ -11,7 +11,7 @@ public with sharing class  CompuLifeController {
 
        System.debug(stateList);
        return stateList;
-    }
+    } */
     
     @AuraEnabled(cacheable=true)  
     public static List<OptionWrapper> getHealthList(){
