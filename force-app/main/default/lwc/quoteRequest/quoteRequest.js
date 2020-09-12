@@ -11,6 +11,8 @@ const FIELDS = [
   'Contact.Title',
   'Contact.Phone',
   'Contact.Birthdate',
+  'Contact.Salutation',
+  'Contact.MailingState'
 ];
 
 export default class ComboboxBasic extends LightningElement {
@@ -281,20 +283,24 @@ get smokerOptions() {
 
 handleClick(event) {
   debugger;
+  var bDate = null; 
+  if(this.contact.data.fields.Birthdate.value){
+     bDate = new Date(this.contact.data.fields.Birthdate.value);
+  }
   this.isLoaded = true;
   let fileBody = JSON.stringify({
-    'State': 'MI',
+    'State': this.contact.data.fields.MailingState.value,
     'ZipCode': '',
-    'BirthMonth': '8',
-    'Birthday': '11',
-    'BirthYear': '1980',
-    'ActualAge': '39',
-    'NearestAge': '40',
-    'Sex': 'M',
-    'Smoker': 'N',
-    'Health': 'PP',
-    'NewCategory': '5',
-    'FaceAmount': '2000000',
+    'BirthMonth': String(bDate.getMonth()),
+    'Birthday': String(bDate.getDate()),
+    'BirthYear': String(bDate.getFullYear()),
+    'ActualAge': String(this.getAge(bDate)),
+    'NearestAge': String(parseInt(this.getAge(bDate)) + 1),
+    'Sex': this.contact.data.fields.Salutation.value == 'Mr' || this.contact.data.fields.Salutation.value == 'Dr' || this.contact.data.fields.Salutation.value == 'Prof' ? 'M' : 'F',
+    'Smoker': this.smokerValue,
+    'Health': this.healthClassValue,
+    'NewCategory': this.typeofInsuValue,
+    'FaceAmount': this.amountofInsuValue,
     'ModeUsed': 'ALL'
   })
   var errObj = null;
@@ -354,10 +360,20 @@ handleClick(event) {
   this.typeofInsuValue = event.detail.value;
 }
 
-handleToInsuChange(event) {
+handleAmuInsuChange(event) {
   this.amountofInsuValue = event.detail.value;
 }
 
+getAge(DOB) {
+  var today = new Date();
+  var birthDate = new Date(DOB);
+  var age = today.getFullYear() - birthDate.getFullYear();
+  var m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age = age - 1;
+  }
 
- 
+  return age;
+}
+
 }

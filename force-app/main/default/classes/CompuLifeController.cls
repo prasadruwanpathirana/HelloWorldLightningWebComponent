@@ -45,8 +45,60 @@ public with sharing class  CompuLifeController {
        for(Quote_Product__c f : prdList) {
           productList.add(new OptionWrapper(f.Name, f.Prod_Code__c));
        }
-
-       //System.debug(productList);
        return productList;
+    }
+
+    @AuraEnabled(cacheable=true)
+    Public Static List<Quote_Result__c> getCachedQuotes(String State, String ZipCode, String ActualAge, String NearestAge, String Sex, String Smoker, String Health, String NewCategory, String FaceAmount, String ModeUsed){
+         List<Quote_Category__c> quoteLst = [SELECT Id FROM Quote_Category__c WHERE Letter__c =:NewCategory];
+         List<Quote_Request__c> quoteRequest = [SELECT Id FROM Quote_Request__c WHERE 
+         ActualAge__c =:Decimal.valueOf(ActualAge) AND 
+         FaceAmount__c =:Decimal.valueOf(FaceAmount)
+         AND Health__c =:Health AND NearestAge__c =:Decimal.valueOf(NearestAge) 
+         AND QuoteCategory__c =:quoteLst[0].Id
+            AND Sex__c =:Sex AND Smoker__c =:Boolean.valueOf(Smoker) AND State__c =:State];
+
+         List<Quote_Result__c> quoteResults = [Select Id, AMBRating__c,CompanyName__c,MonthlyPremium__c,PP_NonTobacco__c,ProductCode__c,Quote_Company__c,Quote_Product__c,QuoteRequest__c,Name FROM Quote_Result__c WHERE QuoteRequest__c IN :quoteRequest ];
+         return quoteResults;         
+    }
+
+    @AuraEnabled(cacheable=true)
+    Public Static Boolean cacheRequest(CompuLifeWrapper.Request req, List<CompuLifeWrapper.Response> resList){
+      try {
+         List<Quote_Category__c> quoteLst = [SELECT Id FROM Quote_Category__c WHERE Letter__c =:req.NewCategory];
+         Quote_Request__c qReq = new Quote_Request__c();
+         qReq.ActualAge__c = req.ActualAge;
+         //qReq.Companies__c = req.
+         qReq.FaceAmount__c = req.FaceAmount;
+         qReq.Health__c = req.Health;
+         qReq.NearestAge__c = req.NearestAge;
+         //qReq.NewCategory__c = req.NewCategory;
+         //qReq.Products__c 
+         qReq.QuoteCategory__c = quoteLstp[0].Id;
+         qReq.Sex__c = req.Sex;
+         qReq.Smoker__c = Boolean.valueOf(req.Smoker);
+         qReq.State__c = req.State;
+         insert qReq;
+
+         List<Quote_Company__c> comp = [SELECT Id from Quote_Company__c WHERE Comp_Code__c =: q] 
+
+         List<Quote_Result__c> qResultList = new List<Quote_Result__c>();
+         for (CompuLifeWrapper.Response qRes: resList) {
+            Quote_Result__c qResult = new Quote_Result__c();
+            qResult.AMBRating__c = qRes.Compulife_ambest;
+            qResult.CompanyName__c = qRes.Compulife_company;
+            qResult.MonthlyPremium__c = qRes.Compulife_premiumM;
+            qResult.PP_NonTobacco__c = qRes.Compulife_healthcat;
+            qResult.ProductCode__c = qRes.Compulife_product;
+            qResult.Quote_Company__c  
+            qResult.Quote_Product__c
+            qResult.QuoteRequest__c = qReq;
+         }
+
+
+      } catch (Exception ex) {
+         System.debug('CompLife caching error ' + ex.getMessage());
+         return false;
+      }
     }
 }
