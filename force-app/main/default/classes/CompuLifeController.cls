@@ -67,34 +67,50 @@ public with sharing class  CompuLifeController {
       try {
          List<Quote_Category__c> quoteLst = [SELECT Id FROM Quote_Category__c WHERE Letter__c =:req.NewCategory];
          Quote_Request__c qReq = new Quote_Request__c();
-         qReq.ActualAge__c = req.ActualAge;
+         qReq.ActualAge__c = Decimal.valueOf(req.ActualAge);
          //qReq.Companies__c = req.
-         qReq.FaceAmount__c = req.FaceAmount;
+         qReq.FaceAmount__c = Decimal.valueOf(req.FaceAmount);
          qReq.Health__c = req.Health;
-         qReq.NearestAge__c = req.NearestAge;
+         qReq.NearestAge__c = Decimal.valueOf(req.NearestAge);
          //qReq.NewCategory__c = req.NewCategory;
          //qReq.Products__c 
-         qReq.QuoteCategory__c = quoteLstp[0].Id;
+         qReq.QuoteCategory__c = quoteLst[0].Id;
          qReq.Sex__c = req.Sex;
          qReq.Smoker__c = Boolean.valueOf(req.Smoker);
          qReq.State__c = req.State;
          insert qReq;
+         List<String> proCodeList = new List<String>();
+         for (CompuLifeWrapper.Response r : resList) {
+            proCodeList.add(r.Compulife_compprodcode);
+         }
+         Map<String,Id> compMap = new Map<String,Id>();
+         for(Quote_Company__c comp : [SELECT Id, Comp_Code__c  from Quote_Company__c WHERE Comp_Code__c IN : proCodeList])
+         compMap.put(comp.Id, comp.Comp_Code__c);
 
-         List<Quote_Company__c> comp = [SELECT Id from Quote_Company__c WHERE Comp_Code__c =: q] 
+         List<String> quotePrdList = new List<String>();
+         for (CompuLifeWrapper.Response r : resList) {
+            quotePrdList.add(r.Compulife_rgpfpp);
+         }
+         Map<String,Id> qPrdMap = new Map<String,Id>();
+         for(Quote_Product__c qPrd : [SELECT Id, Prod_Code__c  from Quote_Product__c WHERE Prod_Code__c IN : quotePrdList])
+         qPrdMap.put(qPrd.Id, qPrd.Prod_Code__c);
 
          List<Quote_Result__c> qResultList = new List<Quote_Result__c>();
          for (CompuLifeWrapper.Response qRes: resList) {
             Quote_Result__c qResult = new Quote_Result__c();
             qResult.AMBRating__c = qRes.Compulife_ambest;
             qResult.CompanyName__c = qRes.Compulife_company;
-            qResult.MonthlyPremium__c = qRes.Compulife_premiumM;
+            qResult.MonthlyPremium__c = Decimal.valueOf(qRes.Compulife_premiumM);
             qResult.PP_NonTobacco__c = qRes.Compulife_healthcat;
-            qResult.ProductCode__c = qRes.Compulife_product;
-            qResult.Quote_Company__c  
-            qResult.Quote_Product__c
-            qResult.QuoteRequest__c = qReq;
+            qResult.ProductCode__c = qRes.Compulife_product;           
+            qResult.Quote_Company__c = compMap.get(qRes.Compulife_compprodcode);
+            qResult.Quote_Product__c = compMap.get(qRes.Compulife_rgpfpp);
+            qResult.QuoteRequest__c = qReq.Id;
+            qResultList.add(qResult);
          }
 
+         insert qResultList;
+         return true;
 
       } catch (Exception ex) {
          System.debug('CompLife caching error ' + ex.getMessage());
