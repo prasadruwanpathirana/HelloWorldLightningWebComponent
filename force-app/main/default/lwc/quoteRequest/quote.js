@@ -1,6 +1,6 @@
 export default class Quote{
 	
-        constructor(Compulife_company, Compulife_ambest, Compulife_amb, Compulife_ambnumber,
+        constructor(id,Compulife_company, Compulife_ambest, Compulife_amb, Compulife_ambnumber,
                 Compulife_compprodcode, Compulife_premiumAnnual, Compulife_premiumM, Compulife_guar,
                 Compulife_product, Compulife_rgpfpp, Compulife_healthcat, Compulife_premiumQ, Compulife_premiumH, Company_logo) {
                 this._Compulife_company = Compulife_company;
@@ -17,6 +17,7 @@ export default class Quote{
                 this._Compulife_premiumQ = Compulife_premiumQ; 
                 this._Compulife_premiumH = Compulife_premiumH;
                 this._Company_logo = Company_logo;
+                this._id = id;
         }
         
 }

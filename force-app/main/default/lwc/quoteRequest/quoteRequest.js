@@ -462,10 +462,12 @@ handleClick(event) {
             } else {
               let quotes_list = [];
                         for(let v of this.qResults){
-                          quotes_list.push(new Quote(v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
+                          var increment = 0;
+                          quotes_list.push(new Quote(increment,v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
                             v.Compulife_compprodcode, v.Compulife_premiumAnnual, v.Compulife_premiumM, v.Compulife_guar,
                             v.Compulife_product, v.Compulife_rgpfpp, v.Compulife_healthcat, v.Compulife_premiumQ, v.Compulife_premiumH, v.Company_logo));
-                        }
+                            increment++;
+                          }
                     
               this.quotes = quotes_list;
               this.isLoaded = false;

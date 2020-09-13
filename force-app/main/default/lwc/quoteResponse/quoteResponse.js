@@ -16,4 +16,5 @@ export default class QuoteResponse extends LightningElement {
     @api Compulife_premiumQ; 
     @api Compulife_premiumH;
     @api Company_logo;
+    @api id;
 }
