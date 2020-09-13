@@ -1,10 +1,13 @@
 <template>
     <template for:each={quotes} for:item="quote">
         <c-quote-response
-            key={quote._compcode}
-            compcode={quote._compcode}
-            name={quote._name}
-            url={quote._url}
+            key={quote.Compulife_compprodcode}
+            -compulife_company={quote.Compulife_company}
+            -compulife_ambest={quote.Compulife_ambest}
+            -compulife_healthcat={quote.Compulife_healthcat}
+            -compulife_premium-m={quote.Compulife_premiumM}
+            -compulife_compprodcode={quote.Compulife_compprodcode}
+            -company_logo={quote.Company_logo}
         >
         </c-quote-response>
         </template>

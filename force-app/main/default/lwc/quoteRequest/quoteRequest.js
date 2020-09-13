@@ -1,8 +1,10 @@
 import { LightningElement, track, api, wire } from 'lwc';
 import Quote from './quote';
-//import getContactList from '@salesforce/apex/CompuLifeController.getContactList';
+import getStateList from '@salesforce/apex/CompuLifeController.getStateList';
 import getHealthList from '@salesforce/apex/CompuLifeController.getHealthList';
 import getCategoryList from '@salesforce/apex/CompuLifeController.getCategoryList';
+import getCachedQuotes from '@salesforce/apex/CompuLifeController.getCachedQuotes';
+import cacheRequest from '@salesforce/apex/CompuLifeController.cacheRequest';
 import { getRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -12,7 +14,8 @@ const FIELDS = [
   'Contact.Phone',
   'Contact.Birthdate',
   'Contact.Salutation',
-  'Contact.MailingState'
+  'Contact.MailingState',
+  'Contact.MailingPostalCode'
 ];
 
 export default class ComboboxBasic extends LightningElement {
@@ -22,13 +25,17 @@ export default class ComboboxBasic extends LightningElement {
 
 @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
     contact;
-
-//@wire(getContactList)
-//    contactsList;
+@wire(getStateList)
+    statesList;
 @wire(getHealthList)
     healthList;
 @wire(getCategoryList)
     categoryList;
+//@wire(getCachedQuotes, { State: fileBody.State, ZipCode : fileBody.ZipCode,  ActualAge : fileBody.ActualAge,
+  // NearestAge: fileBody.NearestAge , Sex : fileBody.Sex, Smoker : fileBody.Smoker, Health : fileBody.Health, 
+  // NewCategory : null, FaceAmount : fileBody.FaceAmount, ModeUsed : fileBody.ModeUsed })
+  //  cacheQuoteList;
+
 
 //@track yearValue = '2020';
 //@track dayValue = '15';
@@ -38,13 +45,14 @@ export default class ComboboxBasic extends LightningElement {
 @track amountofInsuValue = '10000'; 
 @track smokerValue = 'No';
 @track genderValue = 'Male';
-//@track stateValue = 'MI';
+@track stateValue = 'MI';
 @track quotes;
-
+@track qResults;
+@track cacheResp;
 
 
 /*get stateoptions() {
-      return this.contactsList.data;
+      return this.statesList.data;
 } */
 
 /*get yearOptions() {
@@ -283,69 +291,192 @@ get smokerOptions() {
 
 handleClick(event) {
   debugger;
+
+    //valiadte data
+    if(this.contact.data.fields.MailingState.value == null || this.contact.data.fields.MailingState.value == '') {
+      const event = new ShowToastEvent({
+          title: 'Error',
+          message: 'Please enter a value for the Mailing State',
+          variant: 'error'
+      });
+      this.dispatchEvent(event);
+      this.isLoaded = false;
+      return;
+    }
+  
+    if(this.contact.data.fields.MailingPostalCode.value == null || this.contact.data.fields.MailingPostalCode.value == '') {
+      const event = new ShowToastEvent({
+          title: 'Error',
+          message: 'Please enter a value for the Postal/Zip Code',
+          variant: 'error'
+      });
+      this.dispatchEvent(event);
+      this.isLoaded = false;
+      return;
+    }
+  
+    if(this.contact.data.fields.Salutation.value == null || this.contact.data.fields.Salutation.value == '') {
+      const event = new ShowToastEvent({
+          title: 'Error',
+          message: 'Please enter a value for the Salutation/Title',
+          variant: 'error'
+      });
+      this.dispatchEvent(event);
+      this.isLoaded = false;
+      return;
+    }
+
+    if(this.contact.data.fields.Birthdate.value == null || this.contact.data.fields.Birthdate.value == '') {
+      const event = new ShowToastEvent({
+          title: 'Error',
+          message: 'Please enter a value for the Birthday',
+          variant: 'error'
+      });
+      this.dispatchEvent(event);
+      this.isLoaded = false;
+      return;
+    }
+
   var bDate = null; 
   if(this.contact.data.fields.Birthdate.value){
      bDate = new Date(this.contact.data.fields.Birthdate.value);
   }
+
+  let isStateCodeFound = false;
+  for (let index = 0; index < this.statesList.data.length; index++) {
+    const element = this.statesList.data[index];
+    if(element.label == this.contact.data.fields.MailingState.value){
+      isStateCodeFound = true;
+      this.stateValue = element.value; 
+    }
+    
+  }
+
+  //fire error message if status code is not found in the quote request picklist
+  if(!isStateCodeFound) {
+    const event = new ShowToastEvent({
+        title: 'Error',
+        message: 'Please enter a correct value for the state',
+        variant: 'error'  
+    });
+    this.dispatchEvent(event);
+    this.isLoaded = false;
+    return;
+  }
+
+
   this.isLoaded = true;
   let fileBody = JSON.stringify({
-    'State': this.contact.data.fields.MailingState.value,
-    'ZipCode': '',
+    'State': this.stateValue,
+    'ZipCode': this.contact.data.fields.MailingPostalCode.value,
     'BirthMonth': String(bDate.getMonth()),
     'Birthday': String(bDate.getDate()),
     'BirthYear': String(bDate.getFullYear()),
     'ActualAge': String(this.getAge(bDate)),
     'NearestAge': String(parseInt(this.getAge(bDate)) + 1),
     'Sex': this.contact.data.fields.Salutation.value == 'Mr' || this.contact.data.fields.Salutation.value == 'Dr' || this.contact.data.fields.Salutation.value == 'Prof' ? 'M' : 'F',
-    'Smoker': this.smokerValue,
+    'Smoker': this.smokerValue == 'No' ? false : true,
     'Health': this.healthClassValue,
     'NewCategory': this.typeofInsuValue,
     'FaceAmount': this.amountofInsuValue,
     'ModeUsed': 'ALL'
-  })
-  var errObj = null;
-  //6d0BED8e0
-  var url1 = 'https://compulifeapi.com/api/CompanyList/';
-  var url = 'https://compulifeapi.com/api/request/?COMPULIFEAUTHORIZATIONID=51b986Af5&REMOTE_IP=86.245.54.127'
-		fetch(url,
-		{
-      method : "POST",
-      body: fileBody,
-			headers : {
-	
-      },
-		}).then(function(response) {
-      if(response.status != 200) {
-        errObj = response;
-      }
-			return response.json();
-		})
-		.then((qlist) =>{
-      debugger;
-        if(errObj != null) {
-        const event = new ShowToastEvent({
-            title: 'Error',
-            message: qlist.message,
-            variant: 'error'
+  });
+
+
+
+  //verify saved data is availbale for this request
+  //let cacheData = this.cacheQuoteList.data;
+  let fileBodyParse = JSON.parse(fileBody);
+  getCachedQuotes({ State: fileBodyParse.State, ZipCode : fileBodyParse.ZipCode,  ActualAge : fileBodyParse.ActualAge,
+     NearestAge: fileBodyParse.NearestAge , Sex : fileBodyParse.Sex, Smoker : fileBodyParse.Smoker, Health : fileBodyParse.Health, 
+     NewCategory : fileBodyParse.NewCategory, FaceAmount : fileBodyParse.FaceAmount, ModeUsed : fileBodyParse.ModeUsed  })
+        .then(result => {
+            this.qResults = result;
+            if(this.qResults == null) {
+                //call compulife api
+                var errObj = null;
+                //6d0BED8e0
+                var url1 = 'https://compulifeapi.com/api/CompanyList/';
+                var url = 'https://compulifeapi.com/api/request/?COMPULIFEAUTHORIZATIONID=51b986Af5&REMOTE_IP=86.245.54.127'
+                  fetch(url,
+                  {
+                    method : "POST",
+                    body: fileBody,
+                    headers : {
+                
+                    },
+                  }).then(function(response) {
+                    if(response.status != 200) {
+                      errObj = response;
+                    }
+                    return response.json();
+                  })
+                  .then((qlist) =>{
+                    debugger;
+                      if(errObj != null) {
+                      const event = new ShowToastEvent({
+                          title: 'Error',
+                          message: qlist.message,
+                          variant: 'error'
+                      });
+                      this.dispatchEvent(event);
+                      this.isLoaded = false;
+                      return;
+                      }
+                    
+                    let quotes_list = [];
+                        for(let v of qlist.Compulife_ComparisonResults.Compulife_Results){
+                          quotes_list.push(new Quote(v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
+                            v.Compulife_compprodcode, v.Compulife_premiumAnnual, v.Compulife_premiumM, v.Compulife_guar,
+                            v.Compulife_product, v.Compulife_rgpfpp, v.Compulife_healthcat, v.Compulife_premiumQ, v.Compulife_premiumH));
+                        }
+                    
+                    this.quotes = quotes_list;
+                    this.isLoaded = false;
+                    this.isNotInitial = true;
+
+                    //cache the request and response
+                    cacheRequest({ firstNumber: this.fNumber,secondNumber:this.sNumber })
+                      .then(result => {
+                          this.cacheResp = result;
+                          //dispaly success toast message
+                          const event = new ShowToastEvent({
+                            title: 'Success',
+                            message: 'Successfully cache the request and response',
+                            variant: 'success'
+                        });
+                        this.dispatchEvent(event);
+                          
+                      })
+                      .catch(error => {
+                          this.cacheResp = undefined;
+                            const event = new ShowToastEvent({
+                              title: 'Error',
+                              message: error.message,
+                              variant: 'error'
+                          });
+                          this.dispatchEvent(event);
+                      });                    
+                    })
+                    .catch(e=>console.log(e));
+            } else {
+              let quotes_list = [];
+                        for(let v of this.qResults){
+                          quotes_list.push(new Quote(v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
+                            v.Compulife_compprodcode, v.Compulife_premiumAnnual, v.Compulife_premiumM, v.Compulife_guar,
+                            v.Compulife_product, v.Compulife_rgpfpp, v.Compulife_healthcat, v.Compulife_premiumQ, v.Compulife_premiumH, v.Company_logo));
+                        }
+                    
+              this.quotes = quotes_list;
+              this.isLoaded = false;
+              this.isNotInitial = true;
+            }
+        })
+        .catch(error => {
+            this.qResults = undefined;
+            console.log(error.message);
         });
-        this.dispatchEvent(event);
-        this.isLoaded = false;
-        return;
-        }
-      
-			let quotes_list = [];
-			    for(let v of qlist.Compulife_ComparisonResults.Compulife_Results){
-				    quotes_list.push(new Quote(v.Compulife_company, v.Compulife_ambest, v.Compulife_amb, v.Compulife_ambnumber,
-              v.Compulife_compprodcode, v.Compulife_premiumAnnual, v.Compulife_premiumM, v.Compulife_guar,
-              v.Compulife_product, v.Compulife_rgpfpp, v.Compulife_healthcat, v.Compulife_premiumQ, v.Compulife_premiumH));
-          }
-			
-      this.quotes = quotes_list;
-      this.isLoaded = false;
-      this.isNotInitial = true;
-			
-		})
-		.catch(e=>console.log(e));
+
   }
 
   /*handleStateChange(event) {
@@ -355,6 +486,10 @@ handleClick(event) {
   handleHealthClassChange(event) {
     this.healthClassValue = event.detail.value;
  }
+
+ handleSmokerChange(event) {
+  this.smokerValue = event.detail.value;
+}
 
  handleToInsuChange(event) {
   this.typeofInsuValue = event.detail.value;

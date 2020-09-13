@@ -14,6 +14,18 @@ public with sharing class  CompuLifeController {
     } */
     
     @AuraEnabled(cacheable=true)  
+    public static List<OptionWrapper> getStateList(){
+       List<OptionWrapper> stateList = new List<OptionWrapper>();
+       Schema.DescribeFieldResult fieldResult = Quote_Request__c.State__c.getDescribe();
+       List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+       for( Schema.PicklistEntry f : ple) {
+          stateList.add(new OptionWrapper(f.getLabel(), f.getValue()));
+       }
+
+       return stateList;
+    }
+
+    @AuraEnabled(cacheable=true)  
     public static List<OptionWrapper> getHealthList(){
        List<OptionWrapper> healthList = new List<OptionWrapper>();
        Schema.DescribeFieldResult fieldResult = Quote_Request__c.Health__c.getDescribe();
@@ -49,17 +61,43 @@ public with sharing class  CompuLifeController {
     }
 
     @AuraEnabled(cacheable=true)
-    Public Static List<Quote_Result__c> getCachedQuotes(String State, String ZipCode, String ActualAge, String NearestAge, String Sex, String Smoker, String Health, String NewCategory, String FaceAmount, String ModeUsed){
-         List<Quote_Category__c> quoteLst = [SELECT Id FROM Quote_Category__c WHERE Letter__c =:NewCategory];
+    Public Static List<CompuLifeWrapper.Response> getCachedQuotes(String State, String ZipCode, String ActualAge, String NearestAge, String Sex, String Smoker, String Health, String NewCategory, String FaceAmount, String ModeUsed){
+      system.debug('$$parameters ' + State + ' ' + ZipCode  + ' ' + ActualAge  + ' ' + NearestAge  + ' ' + Sex  + ' ' + Smoker  + ' ' + 
+      Health  + ' ' + NewCategory  + ' ' + FaceAmount  + ' ' + ModeUsed);
+      List<Quote_Category__c> quoteLst = [SELECT Id FROM Quote_Category__c WHERE Letter__c =:NewCategory];
+         if(quoteLst.isEmpty())
+            return null;
          List<Quote_Request__c> quoteRequest = [SELECT Id FROM Quote_Request__c WHERE 
          ActualAge__c =:Decimal.valueOf(ActualAge) AND 
          FaceAmount__c =:Decimal.valueOf(FaceAmount)
          AND Health__c =:Health AND NearestAge__c =:Decimal.valueOf(NearestAge) 
          AND QuoteCategory__c =:quoteLst[0].Id
             AND Sex__c =:Sex AND Smoker__c =:Boolean.valueOf(Smoker) AND State__c =:State];
+         List<Quote_Result__c> quoteResults = [Select Id, Quote_Company__r.Logo__c, AMBRating__c,CompanyName__c,MonthlyPremium__c,PP_NonTobacco__c,ProductCode__c,Quote_Company__c,Quote_Product__c,QuoteRequest__c,Name FROM Quote_Result__c WHERE QuoteRequest__c IN :quoteRequest ];
 
-         List<Quote_Result__c> quoteResults = [Select Id, AMBRating__c,CompanyName__c,MonthlyPremium__c,PP_NonTobacco__c,ProductCode__c,Quote_Company__c,Quote_Product__c,QuoteRequest__c,Name FROM Quote_Result__c WHERE QuoteRequest__c IN :quoteRequest ];
-         return quoteResults;         
+         if(quoteResults.isEmpty())
+            return null;
+
+         List<CompuLifeWrapper.Response> resList = new List<CompuLifeWrapper.Response>();
+         for (Quote_Result__c res : quoteResults) {
+            CompuLifeWrapper.Response resWrapper = new CompuLifeWrapper.Response();
+            resWrapper.Compulife_company = res.CompanyName__c;
+            resWrapper.Compulife_ambest = res.AMBRating__c;
+            //resWrapper.Compulife_amb = 
+            //resWrapper.Compulife_ambnumber 
+            resWrapper.Compulife_compprodcode = res.Quote_Company__c;
+            //resWrapper.Compulife_premiumAnnual
+            resWrapper.Compulife_premiumM = String.valueOf(res.MonthlyPremium__c);
+            //resWrapper.Compulife_guar 
+            resWrapper.Compulife_product = res.ProductCode__c;              
+            resWrapper.Compulife_rgpfpp = res.Quote_Product__c;
+            resWrapper.Compulife_healthcat = res.PP_NonTobacco__c;
+            //resWrapper.Compulife_premiumQ
+            //resWrapper.Compulife_premiumH
+            resWrapper.Company_logo = res.Quote_Company__r.Logo__c;
+            resList.add(resWrapper);
+         }
+         return resList;         
     }
 
     @AuraEnabled(cacheable=true)
