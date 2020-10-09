@@ -19,8 +19,8 @@ steps:
     npm install
     npm run build
     wget https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-    mkdir /sfdx
-    tar xJf sfdx-linux-amd64.tar.xz -C /sfdx --strip-components 1
+    mkdir ~/sfdx
+    tar xJf sfdx-linux-amd64.tar.xz -C ~/sfdx --strip-components 1
     /sfdx/install
   displayName: 'npm install and build'
 
