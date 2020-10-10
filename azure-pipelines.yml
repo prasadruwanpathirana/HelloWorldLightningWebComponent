@@ -22,7 +22,7 @@ steps:
     mkdir ~/sfdx
     tar xJf sfdx-linux-amd64.tar.xz -C ~/sfdx --strip-components 1
     ~/sfdx/install
-    echo $CERTIFICATE
-    sfdx force:auth:jwt:grant --clientid 3MVG9n_HvETGhr3D2.ssIOvXkaXMpF1MrbCllYk4k5cpo6z31mot.l6G8ZM8jUWK0wcYwd7h.Zk01iWN0NFbF --jwtkeyfile $CERTIFICATE --username prasad.ruwanpathirana@gmail.com.sph --instanceurl https://login.salesforce.com
+    echo $CERTIFICATE > ~/sfdx/tmp/server.key
+    sfdx force:auth:jwt:grant --clientid 3MVG9n_HvETGhr3D2.ssIOvXkaXMpF1MrbCllYk4k5cpo6z31mot.l6G8ZM8jUWK0wcYwd7h.Zk01iWN0NFbF --jwtkeyfile ~/sfdx/tmp/server.key --username prasad.ruwanpathirana@gmail.com.sph --instanceurl https://login.salesforce.com
   displayName: 'npm install and build'
 
